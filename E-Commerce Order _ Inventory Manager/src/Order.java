@@ -23,42 +23,41 @@ public class Order {
     public double getTotal() { return total; }
     public List<CartItem> getItems() { return items; }
 
+    // Java 8: Using Stream API filter(), findFirst(), and Optional.ifPresentOrElse() to avoid boolean flags
     public void addItem(Product p, int qty) {
         if (status != OrderStatus.PENDING) return;
 
-        boolean found = false;
-        for (CartItem item : items) {
-            if (item.getProduct().getId() == p.getId()) {
-                item.setQuantity(item.getQuantity() + qty);
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            items.add(new CartItem(p, qty));
-        }
+        items.stream()
+                .filter(item -> item.getProduct().getId() == p.getId())
+                .findFirst()
+                .ifPresentOrElse(
+                        item -> item.setQuantity(item.getQuantity() + qty),
+                        () -> items.add(new CartItem(p, qty))
+                );
+
         calculateTotal();
     }
 
+    // Java 8: Using Collection.removeIf() with Lambda expression to remove matching item
     public void removeItem(int productId) {
         if (status != OrderStatus.PENDING) return;
         items.removeIf(item -> item.getProduct().getId() == productId);
         calculateTotal();
     }
 
+    // Java 8: Using Stream API mapToDouble() and sum() to compute total without manual accumulation loop
     public void calculateTotal() {
-        double sum = 0;
-        for (CartItem item : items) {
-            sum += item.calculateSubtotal();
-        }
-        this.total = sum;
+        this.total = items.stream()
+                .mapToDouble(CartItem::calculateSubtotal)
+                .sum();
     }
 
+    // Java 8: Using forEach() with Lambda expression to display cart items
     public void displayOrder() {
         System.out.println("Order #" + orderId + " - Customer: " + customerName + " [" + status + "]");
-        for (CartItem item : items) {
-            System.out.println("  -> " + item.getProduct().getName() + " x" + item.getQuantity() + " = $" + item.calculateSubtotal());
-        }
+        items.forEach(item -> System.out.println("  -> " + item.getProduct().getName()
+                + " x" + item.getQuantity()
+                + " = $" + item.calculateSubtotal()));
         System.out.println("Total: $" + total);
     }
 }

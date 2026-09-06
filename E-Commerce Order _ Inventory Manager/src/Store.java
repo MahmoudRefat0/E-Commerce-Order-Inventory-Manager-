@@ -35,22 +35,25 @@ public class Store {
         return false;
     }
 
+    // Java 8: Using Iterable.forEach() with Method Reference for cleaner iteration
     public void displayAllProducts() {
-        for (Product p : productList) System.out.println(p);
+        productList.forEach(System.out::println);
     }
 
     public Product searchProduct(int id) {
         return productMap.get(id);
     }
 
+    // Java 8: Using forEach() with Lambda Expression
     public void showCategories() {
-        for (String c : categories) System.out.println("- " + c);
+        categories.forEach(c -> System.out.println("- " + c));
     }
 
+    // Java 8: Using Stream API sorted() to sort and display without modifying original list or using manual loops
     public void displayProductsByPrice() {
-        List<Product> temp = new ArrayList<>(productList);
-        Collections.sort(temp);
-        for (Product p : temp) System.out.println(p);
+        productList.stream()
+                .sorted()
+                .forEach(System.out::println);
     }
 
     public boolean createOrder(int id, String customer) {
@@ -110,31 +113,27 @@ public class Store {
         }
     }
 
+    // Java 8: Using Stream API filter() and forEach() to replace manual conditional loop
     public void showReviewsForProduct(int pId) {
-        for (Review r : reviews) {
-            if (r.getProductId() == pId) System.out.println(r);
-        }
+        reviews.stream()
+                .filter(r -> r.getProductId() == pId)
+                .forEach(System.out::println);
     }
 
+    // Java 8: Using Collection.removeIf() and Stream API map() to replace manual Iterator loop
     public void removeOutOfStock() {
-        Iterator<Product> it = productList.iterator();
-        while (it.hasNext()) {
-            Product p = it.next();
-            if (p.getStockQuantity() == 0) {
-                productMap.remove(p.getId());
-                it.remove(); // Safe removal inside loop
-            }
-        }
+        productList.stream()
+                .filter(p -> p.getStockQuantity() == 0)
+                .map(Product::getId)
+                .forEach(productMap::remove);
+
+        productList.removeIf(p -> p.getStockQuantity() == 0);
     }
 
+    // Java 8: Using Stream API with Comparator.comparingDouble() and reversed() to replace anonymous Comparator
     public void displayOrdersByTotal() {
-        List<Order> sorted = new ArrayList<>(allOrders.values());
-        sorted.sort(new Comparator<Order>() {
-            @Override
-            public int compare(Order o1, Order o2) {
-                return Double.compare(o2.getTotal(), o1.getTotal());
-            }
-        });
-        for (Order o : sorted) o.displayOrder();
+        allOrders.values().stream()
+                .sorted(Comparator.comparingDouble(Order::getTotal).reversed())
+                .forEach(Order::displayOrder);
     }
 }
